@@ -1,4 +1,5 @@
 import numbers
+import math
 from . import vector
 
 FORMAT_STR = "{:.15g}"
@@ -40,7 +41,7 @@ def format(result, include_mc_calc = False) -> str:
 
         # Minecraft required stacks and shulkers
         if not isinstance(result, complex) and include_mc_calc and 0 < result < 1e8:
-            r = int(round(result + 0.5))
+            r = math.ceil(result)
             stacks = r // 64
             items = r % 64
             shulkers = r // 1728
@@ -49,7 +50,9 @@ def format(result, include_mc_calc = False) -> str:
             if stacks > 0 and shulkers == 0:
                 mc_str = f" ({stacks}s{items})"
             elif stacks > 0 and shulkers > 0:
-                mc_str = f" ({stacks}s{items} / {shulkers}sh {stacks_left_over}s{items})"
+                items = "" if items == 0 else items
+                stacks_left_over = "" if stacks_left_over == 0 else f"{stacks_left_over}s"
+                mc_str = f" ({stacks}s{items} / {shulkers}sh {stacks_left_over}{items})".replace(" )", ")")
 
         return format_number(result) + mc_str
     return str(result)
