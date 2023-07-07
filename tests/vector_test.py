@@ -101,5 +101,16 @@ class TestVectorMethods(unittest.TestCase):
     def test_dot(self):
         self.assertEqual(Vector([1, 2]).dot(Vector([3, 4])), 3 + 8)
 
+        with self.assertRaises(RuntimeError):
+            Vector([1]).dot(Vector([1, 2]))
+
+    def test_cross(self):
+        with self.assertRaises(RuntimeError):
+            Vector([1, 2, 3]).cross(Vector([3, 4, 5, 6]))
+        with self.assertRaises(RuntimeError):
+            Vector([1, 2]).cross(Vector([3, 4]))
+        
+        self.assertEqual((Vector([1, 2, 3]).cross(Vector([4, 5, 6]))).items, [-3, 6, -3])
+
 if __name__ == '__main__':
     unittest.main()

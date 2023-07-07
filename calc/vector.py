@@ -1,6 +1,6 @@
 import numbers
 
-import calc.maths as maths
+from . import maths
 
 class Vector(object):
     def __init__(self, items):
@@ -77,8 +77,23 @@ class Vector(object):
         return sum([abs(x ** 2) for x in self.items]) ** 0.5
 
     def dot(self, other):
-        assert len(other) == len(self)
+        if len(other) != len(self):
+            err = f"Cannot dot() with vectors of different lengths ({len(self)} and {len(other)})"
+            raise RuntimeError(err)
         s = 0
         for i, item in enumerate(other.items):
             s += item * self.items[i]
         return s
+    
+    def cross(self, other):
+        if len(other) != len(self):
+            err = f"Cannot dot() with vectors of different lengths ({len(self)} and {len(other)})"
+            raise RuntimeError(err)
+        if len(self) != 3:
+            raise RuntimeError("Cross product is only implemented for vectors of length 3")
+        a, b = self, other
+        return Vector([
+            a[1] * b[2] - a[2] * b[1],
+            a[2] * b[0] - a[0] * b[2],
+            a[0] * b[1] - a[1] * b[0]
+        ])

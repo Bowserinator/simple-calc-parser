@@ -1,6 +1,5 @@
 import numbers
-
-from calc.vector import Vector
+from . import vector
 
 FORMAT_STR = "{:.15g}"
 IS_ZERO_PREC = 1e-15
@@ -33,14 +32,14 @@ def format(result, include_mc_calc = False) -> str:
     :param include_mc_calc: Whether to interpret results in stacks of 64 for Minecraft
     :return: Formatted string
     """
-    if isinstance(result, Vector):
-        contents = [format_number(i) for i in result.items]
+    if isinstance(result, vector.Vector):
+        contents = ", ".join([format_number(i) for i in result.items])
         return f"[{contents}]"
     elif isinstance(result, numbers.Number):
         mc_str = ""
 
         # Minecraft required stacks and shulkers
-        if include_mc_calc and 0 < result < 1e8:
+        if not isinstance(result, complex) and include_mc_calc and 0 < result < 1e8:
             r = int(round(result + 0.5))
             stacks = r // 64
             items = r % 64
@@ -50,7 +49,7 @@ def format(result, include_mc_calc = False) -> str:
             if stacks > 0 and shulkers == 0:
                 mc_str = f" ({stacks}s{items})"
             elif stacks > 0 and shulkers > 0:
-                mc_str = f" ({stacks}s{items} ({shulkers}sh {stacks_left_over}s{items}))"
+                mc_str = f" ({stacks}s{items} / {shulkers}sh {stacks_left_over}s{items})"
 
         return format_number(result) + mc_str
     return str(result)

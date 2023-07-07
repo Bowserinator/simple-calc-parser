@@ -1,8 +1,8 @@
 import string
 from abc import abstractmethod
 
-import calc.maths as maths
-from calc.vector import Vector
+from . import maths
+from . import vector
 
 class Tokenizer(object):
     def __init__(self, s):
@@ -41,6 +41,11 @@ class Tokenizer(object):
                 token.consumed = token.consumed[1:] # Remove the - in the number
                 self.tokens.insert(i, MinusOrPlusSignToken("-")) # Insert a - operator before
             i += 1
+
+        for matchType in [ParenToken, VectorToken]:
+            if self.buffer[f"l{matchType.name}"] > self.buffer[f"r{matchType.name}"]:
+                err = f"Mismatched {matchType.name}: Missing closing '{matchType.right_sym}'"
+                raise RuntimeError(err)
 
     def next_char(self, i) -> str:
         """
@@ -234,7 +239,7 @@ class VectorToken(MatchableToken):
         super().__init__(consumed, "[", "]")
 
     def eval(self, args):
-        return Vector(args)
+        return vector.Vector(args)
 
     @staticmethod
     def scan(tokenizer):
@@ -287,9 +292,14 @@ class MinusOrPlusSignToken(AbstractToken):
         c = tokenizer.string[tokenizer.itr]
 
         # Conditions:
-        # - previous token (disregarding parens) must be a binop
+        # - previous token (disregarding parens) must be a binop or func op
         # - next token cannot be a digit
-        if c in "+-" and (len(tokenizer.tokens) == 0 or isinstance(tokenizer.last_math_token(), BinOpToken)) \
+        ltoken = tokenizer.last_math_token()
+        if c in "+-" and (
+                    len(tokenizer.tokens) == 0 or \
+                    isinstance(ltoken, BinOpToken) or \
+                    (isinstance(ltoken, ConstantOrFunctionToken) and ltoken.is_function)
+                ) \
                 and not tokenizer.next_char(tokenizer.itr).isdigit():
             return MinusOrPlusSignToken(c), tokenizer.itr + 1
         return None, tokenizer.itr

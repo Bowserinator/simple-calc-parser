@@ -1,5 +1,5 @@
-import calc.lexer as lexer
-import calc.maths as maths
+from . import lexer
+from . import maths
 
 def _token_is_left_paren(t):
     return isinstance(t, lexer.ParenToken) and t.is_left
@@ -97,6 +97,8 @@ def shunting_yard(tokenizer):
             else:
                 # Remove last START token, since not needed (not a function)
                 for i in range(len(out_stack) - 1, -1, -1):
+                    if isinstance(out_stack[i], lexer.ConstantOrFunctionToken) and out_stack[i].is_function:
+                        break
                     if isinstance(out_stack[i], lexer.StartToken):
                         out_stack.pop(i)
                         break
@@ -151,6 +153,9 @@ def parse(expr):
         val = token.eval(get_n_tokens(token.argc))
         if val != None:
             stack.append(val)
+
+    if not len(stack):
+        raise RuntimeError("Failed to evaluate result (missing parentheses?)")
 
     return stack[-1]
 
